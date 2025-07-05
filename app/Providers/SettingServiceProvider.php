@@ -5,7 +5,6 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\App;
 
 class SettingServiceProvider extends ServiceProvider
 {
@@ -22,7 +21,47 @@ class SettingServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Evita tentar acessar o banco durante comandos como package:discover
+        try {
+            // Verifica se a conexão com o banco está disponível
+            if (DB::connection()->getDatabaseName() && Schema::hasTable('settings')) {
+                // Busca as configurações via helper e seta no config
+                $setting = \Helper::getSetting();
+                config()->set('setting', $setting);
+            }
+        } catch (\Exception $e) {
+            // Ignora erros, por exemplo, quando banco não está disponível no build/deploy
+        }
+    }
+}
+
+
+
+/*
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\App;
+
+class SettingServiceProvider extends ServiceProvider
+{
+    
+     
+     
+    public function register(): void
+    {
+        
+    }
+
+    
+    
+     
+    public function boot(): void
+    {
+        
         if (App::runningInConsole()) {
             return;
         }
@@ -33,10 +72,11 @@ class SettingServiceProvider extends ServiceProvider
                 config()->set('setting', $setting);
             }
         } catch (\Exception $e) {
-            // Ignora erro de conexão com o banco durante build/deploy
+           
         }
     }
-}
+}  
+ */
 
 
 
