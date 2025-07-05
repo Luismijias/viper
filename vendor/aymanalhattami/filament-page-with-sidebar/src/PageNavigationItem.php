@@ -2,7 +2,6 @@
 
 namespace AymanAlhattami\FilamentPageWithSidebar;
 
-use Closure;
 use Filament\Navigation\NavigationItem;
 
 class PageNavigationItem extends NavigationItem
@@ -20,7 +19,7 @@ class PageNavigationItem extends NavigationItem
     {
         $label = parent::getLabel();
 
-        return (is_string($label) && $this->shouldTranslateLabel)
+        return ($this->shouldTranslateLabel)
             ? __($label)
             : $label;
     }

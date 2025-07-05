@@ -62,6 +62,13 @@ You can publish translations with:
 php artisan vendor:publish --tag="filament-spatie-roles-permissions-translations"
 ```
 
+Don't forget to add the `HasRoles` trait to your User model.
+
+```php
+ // The User model requires this trait
+ use HasRoles;
+ ```
+
 ## Usage
 
 ### Form
@@ -87,6 +94,12 @@ This will not delete any existing permissions. However, if you want to delete al
 
 ```bash
 php artisan permissions:sync -C|--clean
+```
+
+There may be an occassion where you wish to hard reset and truncate your existing permissions. To delete all permissions and reset the primary key, run
+
+```bash
+php artisan permissions:sync -H|--hard
 ```
 
 #### Example: 
@@ -118,8 +131,20 @@ php artisan permissions:sync -O|--oep
 ```
 
 ### Role and Permission Policies
+
 Create a RolePolicy and PermissionPolicy if you wish to control the visibility of the resources on the navigation menu.
-Make sure to add them to the AuthServiceProvider. 
+Make sure to add them to the AuthServiceProvider.
+> **ℹ️ Info:** *Laravel 11 removed `AuthServiceProvider`, so, in this case, we need to use `AppServiceProvider` instead.*
+
+```bash
+use App\Policies\RolePolicy;
+use App\Policies\PermissionPolicy;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+
+Gate::policy(Role::class, RolePolicy::class);
+Gate::policy(Permission::class, PermissionPolicy::class);
+```
 
 ### Ignoring prompts
 You can ignore any prompts by add the flag ``-Y`` or ``--yes-to-all`` 
@@ -176,11 +201,9 @@ Example: If you use `api` guard, you should add the following to the `guards` ar
 'teams' => true
 ```
 
-- Make sure the `team_model` on the `config/filament-spatie-roles-permissions` is correctly set.
-
+- Make sure the `team_model` on the `config/permission` is correctly set.
 - Create a Role model which extends `Spatie\Permission\Models\Role`
-- Create a Permission model which extends `Spatie\Permission\Models\Permission`
-- Replace the models in the `config/permission.php` with the newly created models
+- Replace the model in the `config/permission.php` with the newly created models
 - Add the `team` relationship in both models
 
 ```php
@@ -192,7 +215,6 @@ public function team(): BelongsTo
 ```
 - Add the following to the `AdminPanelProvider` to support tenancy
 
-Follow the instructions on [Filament Multi-tenancy](https://filamentphp.com/docs/3.x/panels/tenancy)
 
 ```php
 use Althinect\FilamentSpatieRolesPermissions\Middleware\SyncSpatiePermissionsWithFilamentTenants;
@@ -203,6 +225,21 @@ $panel
         SyncSpatiePermissionsWithFilamentTenants::class,
     ], isPersistent: true)
 ```
+
+- Use the following within you UserResource
+
+```
+Forms\Components\Select::make('roles')
+            ->relationship(name: 'roles', titleAttribute: 'name')
+            ->saveRelationshipsUsing(function (Model $record, $state) {
+                 $record->roles()->syncWithPivotValues($state, [config('permission.column_names.team_foreign_key') => getPermissionsTeamId()]);
+            })
+           ->multiple()
+           ->preload()
+           ->searchable(),
+```
+
+Follow the instructions on [Filament Multi-tenancy](https://filamentphp.com/docs/3.x/panels/tenancy)
 
 ### Configurations
 

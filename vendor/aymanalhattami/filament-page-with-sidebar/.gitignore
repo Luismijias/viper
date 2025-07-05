@@ -1,5 +1,13 @@
-/node_modules
-/vendor
-/.history
+.DS_Store
+.idea
+.phpunit.result.cache
+.phpunit.cache
+.vscode
+build
 composer.lock
-TODO.md
+coverage
+node_modules
+phpunit.xml
+phpstan.neon
+testbench.yaml
+vendor
